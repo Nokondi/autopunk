@@ -80,7 +80,7 @@ def _slerp(p0, p1, t):
   return np.sin((1.0-t)*omega) / so * p0 + np.sin(t*omega)/so * p1
 
 
-def run(config_map):
+def run(config_map, args):
   """Load model params, save config file and start trainer.
 
   Args:
@@ -91,21 +91,21 @@ def run(config_map):
   """
   date_and_time = time.strftime('%Y-%m-%d_%H%M%S')
 
-  if FLAGS.run_dir is None == FLAGS.checkpoint_file is None:
+  if FLAGS.run_dir is None == args['checkpoint_file'] is None:
     raise ValueError(
         'Exactly one of `--run_dir` or `--checkpoint_file` must be specified.')
-  if FLAGS.output_dir is None:
+  if args['output_dir'] is None:
     raise ValueError('`--output_dir` is required.')
-  tf.gfile.MakeDirs(FLAGS.output_dir)
-  if FLAGS.mode != 'sample' and FLAGS.mode != 'interpolate':
-    raise ValueError('Invalid value for `--mode`: %s' % FLAGS.mode)
+  tf.gfile.MakeDirs(args['output_dir'])
+  if args['mode'] != 'sample' and args['mode'] != 'interpolate':
+    raise ValueError('Invalid value for `--mode`: %s' % args['mode'])
 
-  if FLAGS.config not in config_map:
-    raise ValueError('Invalid config name: %s' % FLAGS.config)
-  config = config_map[FLAGS.config]
+  if args['config'] not in config_map:
+    raise ValueError('Invalid config name: %s' % args['config'])
+  config = config_map[args['config']]
   config.data_converter.max_tensors_per_item = None
 
-  if FLAGS.mode == 'interpolate':
+  if args['mode'] == 'interpolate':
     if FLAGS.input_midi_1 is None or FLAGS.input_midi_2 is None:
       raise ValueError(
           '`--input_midi_1` and `--input_midi_2` must be specified in '
@@ -129,9 +129,9 @@ def run(config_map):
         sys.exit()
       elif len(tensors) > 1:
         basename = os.path.join(
-            FLAGS.output_dir,
+            args['output_dir'],
             '%s_input%d-extractions_%s-*-of-%03d.mid' %
-            (FLAGS.config, input_number, date_and_time, len(tensors)))
+            (args['config'], input_number, date_and_time, len(tensors)))
         for i, ns in enumerate(config.data_converter.from_tensors(tensors)):
           mm.sequence_proto_to_midi_file(ns, basename.replace('*', '%03d' % i))
         print(
@@ -141,7 +141,7 @@ def run(config_map):
         sys.exit()
     logging.info(
         'Attempting to extract examples from input MIDIs using config `%s`...',
-        FLAGS.config)
+        args['config'])
     _check_extract_examples(input_1, FLAGS.input_midi_1, 1)
     _check_extract_examples(input_2, FLAGS.input_midi_2, 2)
 
@@ -150,36 +150,37 @@ def run(config_map):
     checkpoint_dir_or_path = os.path.expanduser(
         os.path.join(FLAGS.run_dir, 'train'))
   else:
-    checkpoint_dir_or_path = os.path.expanduser(FLAGS.checkpoint_file)
+    checkpoint_dir_or_path = os.path.expanduser(args['checkpoint_file'])
   model = TrainedModel(
-      config, batch_size=min(FLAGS.max_batch_size, FLAGS.num_outputs),
+      config, batch_size=min(FLAGS.max_batch_size, args['num_outputs']),
       checkpoint_dir_or_path=checkpoint_dir_or_path)
 
-  if FLAGS.mode == 'interpolate':
+  if args['mode'] == 'interpolate':
     logging.info('Interpolating...')
     _, mu, _ = model.encode([input_1, input_2])
     z = np.array([
-        _slerp(mu[0], mu[1], t) for t in np.linspace(0, 1, FLAGS.num_outputs)])
+        _slerp(mu[0], mu[1], t) for t in np.linspace(0, 1, args['num_outputs'])])
     results = model.decode(
         length=config.hparams.max_seq_len,
         z=z,
         temperature=FLAGS.temperature)
-  elif FLAGS.mode == 'sample':
+  elif args['mode'] == 'sample':
     logging.info('Sampling...')
     results = model.sample(
-        n=FLAGS.num_outputs,
+        n=args['num_outputs'],
         length=config.hparams.max_seq_len,
         temperature=FLAGS.temperature)
 
   basename = os.path.join(
-      FLAGS.output_dir,
+      args['output_dir'],
       '%s_%s_%s-*-of-%03d.mid' %
-      (FLAGS.config, FLAGS.mode, date_and_time, FLAGS.num_outputs))
-  logging.info('Outputting %d files as `%s`...', FLAGS.num_outputs, basename)
+      (args['config'], args['mode'], date_and_time, args['num_outputs']))
+  logging.info('Outputting %d files as `%s`...', args['num_outputs'], basename)
   for i, ns in enumerate(results):
     mm.sequence_proto_to_midi_file(ns, basename.replace('*', '%03d' % i))
 
   logging.info('Done.')
+  return date_and_time
 
 
 def main(unused_argv):

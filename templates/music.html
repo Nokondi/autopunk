@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+    <form action="/midi_dl" method="post">
+        <input type="hidden" name="ts" id="ts" value="{{ ts }}">
+        <button type="submit">Download Midi</button>
+    </form>
+    <form action="/sheet_dl" method="post">
+        <input type="hidden" name="ts" id="ts" value="{{ ts }}">
+        <button type="submit">Download Sheet Music</button>
+    </form>
+{% endblock %}
