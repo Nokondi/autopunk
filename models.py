@@ -33,6 +33,7 @@ def store_user_info(username, email, password_hash):
 def check_user(username, password):
     with ndb_client.context():
         query = User.query(User.username == username)
+        result = False
         for u in query:
             result = check_password_hash(u.password_hash, password)
         return result
