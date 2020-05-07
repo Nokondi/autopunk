@@ -105,68 +105,20 @@ def run(config_map, args):
   config = config_map[args['config']]
   config.data_converter.max_tensors_per_item = None
 
-  if args['mode'] == 'interpolate':
-    if FLAGS.input_midi_1 is None or FLAGS.input_midi_2 is None:
-      raise ValueError(
-          '`--input_midi_1` and `--input_midi_2` must be specified in '
-          '`interpolate` mode.')
-    input_midi_1 = os.path.expanduser(FLAGS.input_midi_1)
-    input_midi_2 = os.path.expanduser(FLAGS.input_midi_2)
-    if not os.path.exists(input_midi_1):
-      raise ValueError('Input MIDI 1 not found: %s' % FLAGS.input_midi_1)
-    if not os.path.exists(input_midi_2):
-      raise ValueError('Input MIDI 2 not found: %s' % FLAGS.input_midi_2)
-    input_1 = mm.midi_file_to_note_sequence(input_midi_1)
-    input_2 = mm.midi_file_to_note_sequence(input_midi_2)
-
-    def _check_extract_examples(input_ns, path, input_number):
-      """Make sure each input returns exactly one example from the converter."""
-      tensors = config.data_converter.to_tensors(input_ns).outputs
-      if not tensors:
-        print(
-            'MusicVAE configs have very specific input requirements. Could not '
-            'extract any valid inputs from `%s`. Try another MIDI file.' % path)
-        sys.exit()
-      elif len(tensors) > 1:
-        basename = os.path.join(
-            args['output_dir'],
-            '%s_input%d-extractions_%s-*-of-%03d.mid' %
-            (args['config'], input_number, date_and_time, len(tensors)))
-        for i, ns in enumerate(config.data_converter.from_tensors(tensors)):
-          mm.sequence_proto_to_midi_file(ns, basename.replace('*', '%03d' % i))
-        print(
-            '%d valid inputs extracted from `%s`. Outputting these potential '
-            'inputs as `%s`. Call script again with one of these instead.' %
-            (len(tensors), path, basename))
-        sys.exit()
-    logging.info(
-        'Attempting to extract examples from input MIDIs using config `%s`...',
-        args['config'])
-    _check_extract_examples(input_1, FLAGS.input_midi_1, 1)
-    _check_extract_examples(input_2, FLAGS.input_midi_2, 2)
-
   logging.info('Loading model...')
 
   checkpoint_dir_or_path = os.path.expanduser(args['checkpoint_file'])
   model = TrainedModel(
-      config, batch_size=min(FLAGS.max_batch_size, args['num_outputs']),
+      config, batch_size=min(8, args['num_outputs']),
       checkpoint_dir_or_path=checkpoint_dir_or_path)
 
-  if args['mode'] == 'interpolate':
-    logging.info('Interpolating...')
-    _, mu, _ = model.encode([input_1, input_2])
-    z = np.array([
-        _slerp(mu[0], mu[1], t) for t in np.linspace(0, 1, args['num_outputs'])])
-    results = model.decode(
-        length=config.hparams.max_seq_len,
-        z=z,
-        temperature=FLAGS.temperature)
-  elif args['mode'] == 'sample':
+
+  if args['mode'] == 'sample':
     logging.info('Sampling...')
     results = model.sample(
         n=args['num_outputs'],
         length=config.hparams.max_seq_len,
-        temperature=FLAGS.temperature)
+        temperature=0.5)
 
   basename = os.path.join(
       args['output_dir'],

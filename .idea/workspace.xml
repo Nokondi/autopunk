@@ -55,8 +55,8 @@
       <file leaf-file-name="music_vae_generate.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/magenta/models/music_vae/music_vae_generate.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-68">
-              <caret line="149" selection-start-line="149" selection-end-line="149" />
+            <state relative-caret-position="950">
+              <caret line="120" column="23" selection-start-line="120" selection-start-column="23" selection-end-line="120" selection-end-column="23" />
             </state>
           </provider>
         </entry>
@@ -660,8 +660,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/magenta/models/music_vae/music_vae_generate.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-68">
-          <caret line="149" selection-start-line="149" selection-end-line="149" />
+        <state relative-caret-position="950">
+          <caret line="120" column="23" selection-start-line="120" selection-start-column="23" selection-end-line="120" selection-end-column="23" />
         </state>
       </provider>
     </entry>
