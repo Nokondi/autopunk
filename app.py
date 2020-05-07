@@ -85,9 +85,9 @@ def midi_dl():
 @login_required
 def sheet_dl():
     stream = midi.translate.midiFilePathToStream(request.form['filename'])
-
+    sheet = stream.write('%s.pdf' % request.form['filename'])
     #return send_file(l, as_attachment=True)
-    return stream.show('autopunk.pdf')
+    return send_file('%s.pdf' % request.form['filename'], as_attachment=True)
 
 if __name__ == '__main__':
     app.run()
