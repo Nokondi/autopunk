@@ -1,11 +1,9 @@
 from flask import Flask, render_template, redirect, send_file, request, flash
 from magenta.models.music_vae.music_vae_generate import run, FLAGS
 from magenta.models.music_vae.configs import CONFIG_MAP
-from werkzeug.security import generate_password_hash, check_password_hash
-from music21 import *
-from google.cloud import datastore, ndb
+from mingus.midi import midi_file_in
+import mingus.extra.lilypond as LilyPond
 from flask_login import LoginManager, login_user, logout_user, current_user, login_required
-from models import *
 from forms import *
 
 app = Flask(__name__)
@@ -84,10 +82,13 @@ def midi_dl():
 @app.route('/sheet_dl', methods=["POST"])
 @login_required
 def sheet_dl():
-    stream = midi.translate.midiFilePathToStream(request.form['filename'])
-    sheet = stream.write('lily.pdf')
+    print(request.form['filename'])
+    m = midi_file_in.MIDI_to_Composition(request.form['filename'])
+    l = LilyPond.fromComposition(m)
+    sheet = LilyPond.to_pdf(l, 'output/%s.pdf' % request.form['filename'])
+    print(sheet)
     #return send_file(l, as_attachment=True)
-    return send_file(sheet, as_attachment=True)
+    return send_file('output/%s.pdf' % request.form['filename'], as_attachment=True)
 
 if __name__ == '__main__':
     app.run()
