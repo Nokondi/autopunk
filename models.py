@@ -21,9 +21,12 @@ def get_user(username):
 
 def get_user_by_id(id):
     with ndb_client.context():
-        key = ndb.Key(User, int(id))
+        key = ndb.Key('User', int(id))
         u = key.get()
-        return User(id=u.key.id(), username=u.username, email=u.email, password_hash=u.password_hash)
+        if u:
+            return User(id=u.key.id(), username=u.username, email=u.email, password_hash=u.password_hash)
+        else:
+            return None
 
 def store_user_info(username, email, password_hash):
     with ndb_client.context():
