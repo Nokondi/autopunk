@@ -177,10 +177,11 @@ def run(config_map, args):
       (args['config'], args['mode'], date_and_time, args['num_outputs']))
   logging.info('Outputting %d files as `%s`...', args['num_outputs'], basename)
   for i, ns in enumerate(results):
+    fname = basename.replace('*', '%03d' % i)
     mm.sequence_proto_to_midi_file(ns, basename.replace('*', '%03d' % i))
 
   logging.info('Done.')
-  return date_and_time
+  return fname
 
 
 def main(unused_argv):

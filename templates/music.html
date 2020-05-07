@@ -1,11 +1,16 @@
 {% extends "base.html" %}
 {% block content %}
+    <form action="/generate" method="post">
+        <button type="submit">Generate Music</button>
+    </form>
+    {% for song in songs %}
     <form action="/midi_dl" method="post">
-        <input type="hidden" name="ts" id="ts" value="{{ ts }}">
+        <input type="hidden" name="filename" id="filename" value="{{ song }}">
         <button type="submit">Download Midi</button>
     </form>
     <form action="/sheet_dl" method="post">
-        <input type="hidden" name="ts" id="ts" value="{{ ts }}">
+        <input type="hidden" name="filename" id="filename" value="{{ song }}">
         <button type="submit">Download Sheet Music</button>
     </form>
+    {% endfor %}
 {% endblock %}

@@ -1,19 +1,61 @@
-from flask import Flask, render_template, redirect, send_file, request
+from flask import Flask, render_template, redirect, send_file, request, flash
 from magenta.models.music_vae.music_vae_generate import run, FLAGS
 from magenta.models.music_vae.configs import CONFIG_MAP
+from werkzeug.security import generate_password_hash, check_password_hash
 from music21 import *
-from flask_login import LoginManager
-from datastore import *
+from google.cloud import datastore, ndb
+from flask_login import LoginManager, login_user, logout_user, current_user, login_required
+from models import *
+from forms import *
 
 app = Flask(__name__)
 
-login = LoginManager(app)
+app.config['SECRET_KEY'] = 'eMgOaDn3sjb3S1c2s6Tt5o1KzF2MMaCt'
+
+login = LoginManager()
+login.init_app(app)
+
+@login.user_loader
+def load_user(id):
+    return get_user_by_id(id)
 
 @app.route('/')
 def default_route():
     return render_template('main.html')
 
+@app.route('/login', methods=["GET", "POST"])
+def login():
+    if current_user.is_authenticated:
+        return redirect('/music')
+    form = LoginForm()
+    if form.validate_on_submit():
+        if check_user(form.username.data, form.password.data) == False:
+            flash('Invalid username or password')
+            return redirect('/login')
+        else:
+            user = get_user(form.username.data)
+        login_user(user)
+        return redirect('/music')
+    return render_template('login.html', form=form)
+
+@app.route('/logout')
+def logout():
+    logout_user()
+    return redirect('/')
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if current_user.is_authenticated:
+        return redirect('/music')
+    form = RegistrationForm()
+    if form.validate_on_submit():
+        store_user_info(form.username.data, form.email.data, generate_password_hash(form.password.data))
+        flash('Congratulations, you are now a registered user!')
+        return redirect('/login')
+    return render_template('register.html', title='Register', form=form)
+
 @app.route('/generate', methods=["POST"])
+@login_required
 def generate_seq():
     if(request.method=="POST"):
         args = {
@@ -23,23 +65,28 @@ def generate_seq():
             "num_outputs":1,
             "output_dir":"%s/output" % app.root_path
         }
-        ts = run(CONFIG_MAP, args)
+        filename = run(CONFIG_MAP, args)
+        add_song(current_user.username, filename)
         return redirect('/music')
 
 @app.route('/music' , methods=["GET"])
+@login_required
 def music():
-    return render_template('music.html')
+    if current_user.is_authenticated:
+        songs = get_songs(current_user.username)
+    return render_template('music.html', songs=songs)
 
 @app.route('/midi_dl', methods=["POST"])
+@login_required
 def midi_dl():
-    filestring = "hierdec-trio_16bar_sample_%s-000-of-001.mid" % ts
-    send_file("output/%s" % filestring, as_attachment=True)
-    return redirect('/music')
+    return send_file(request.form['filename'], as_attachment=True)
 
 @app.route('/sheet_dl', methods=["POST"])
+@login_required
 def sheet_dl():
-    midi.translate.midiFilePathToStream()
-    return redirect('/music')
+    stream = midi.translate.midiFilePathToStream(request.form['filename'])
+    l = stream.write('lily.pdf')
+    return send_file(l, as_attachment=True)
 
 if __name__ == '__main__':
     app.run()
