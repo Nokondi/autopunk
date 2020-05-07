@@ -24,7 +24,7 @@ class RegistrationForm(FlaskForm):
         with ndb_client.context():
             query = User.query(User.username==username.data)
             for u in query:
-                if u.username == username:
+                if u.username == username.data:
                     raise ValidationError('Please use a different username.')
 
 
@@ -32,5 +32,5 @@ class RegistrationForm(FlaskForm):
         with ndb_client.context():
             query = User.query(User.email==email.data)
             for u in query:
-                if u.email == email:
+                if u.email == email.data:
                     raise ValidationError('Please use a different email address.')
