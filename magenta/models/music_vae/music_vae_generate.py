@@ -91,7 +91,7 @@ def run(config_map, args):
   """
   date_and_time = time.strftime('%Y-%m-%d_%H%M%S')
 
-  if FLAGS.run_dir is None == args['checkpoint_file'] is None:
+  if args['checkpoint_file'] is None:
     raise ValueError(
         'Exactly one of `--run_dir` or `--checkpoint_file` must be specified.')
   if args['output_dir'] is None:

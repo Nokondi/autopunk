@@ -63,7 +63,7 @@ def generate_seq():
             "checkpoint_file":"./checkpoints/train1000.tar",
             "mode":"sample",
             "num_outputs":1,
-            "output_dir":"%s/output" % app.root_path
+            "output_dir":"./output"
         }
         filename = run(CONFIG_MAP, args)
         add_song(current_user.username, filename)
