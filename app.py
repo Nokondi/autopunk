@@ -1,8 +1,6 @@
 from flask import Flask, render_template, redirect, send_file, request, flash
-from magenta.models.music_vae.music_vae_generate import run, FLAGS
+from magenta.models.music_vae.music_vae_generate import run
 from magenta.models.music_vae.configs import CONFIG_MAP
-from mingus.midi import midi_file_in
-import mingus.extra.lilypond as LilyPond
 from music21 import *
 from flask_login import LoginManager, login_user, logout_user, current_user, login_required
 from forms import *
@@ -85,10 +83,10 @@ def midi_dl():
 def sheet_dl():
     print(request.form['filename'])
     song = converter.parse(request.form['filename'])
-    sheet = song.write('lily.pdf')
-    print(sheet)
-    #return send_file(l, as_attachment=True)
-    return send_file(sheet, as_attachment=True)
+    for part in song.parts:
+        part.removeByClass('Rest')
+    song.show('lily.pdf')
+    return redirect('/music')
 
 if __name__ == '__main__':
     app.run()
