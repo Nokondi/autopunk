@@ -3,14 +3,25 @@
     <form action="/generate" method="post">
         <button type="submit">Generate Music</button>
     </form>
-    {% for song in songs %}
-    <form action="/midi_dl" method="post">
-        <input type="hidden" name="filename" id="filename" value="{{ song }}">
-        <button type="submit">Download Midi</button>
-    </form>
-    <form action="/sheet_dl" method="post">
-        <input type="hidden" name="filename" id="filename" value="{{ song }}">
-        <button type="submit">Download Sheet Music</button>
-    </form>
-    {% endfor %}
+    <table>
+        {% for song in songs %}
+            <tr>
+                <td>
+                    <p>Song {{ loop.index }}</p>
+                </td>
+                <td>
+                    <form action="/midi_dl" method="post">
+                        <input type="hidden" name="filename" id="filename" value="{{ song }}">
+                        <button type="submit">Download Midi</button>
+                    </form>
+                </td>
+                <td>
+                    <form action="/sheet_dl" method="post">
+                        <input type="hidden" name="filename" id="filename" value="{{ song }}">
+                        <button type="submit">Download Sheet Music</button>
+                    </form>
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
 {% endblock %}

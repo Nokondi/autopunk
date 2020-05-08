@@ -49,5 +49,3 @@ requests-toolbelt==0.9.1
 flask_wtf
 email_validator
 google-cloud-ndb
-mingus
-pyfluidsynth
