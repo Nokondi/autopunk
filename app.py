@@ -2,6 +2,7 @@ from flask import Flask, render_template, redirect, send_file, request, flash
 from magenta.models.music_vae.music_vae_generate import run
 from magenta.models.music_vae.configs import CONFIG_MAP
 from music21 import *
+from pretty_midi import *
 from flask_login import LoginManager, login_user, logout_user, current_user, login_required
 from forms import *
 
@@ -63,6 +64,11 @@ def generate_seq():
             "output_dir":"./output"
         }
         filename = run(CONFIG_MAP, args)
+        midi_data = PrettyMIDI(filename)
+        for instrument in midi_data.instruments:
+            if instrument.program == 0 and instrument.is_drum == False:
+                instrument.program = 29
+        midi_data.write(filename)
         add_song(current_user.username, filename)
         return redirect('/music')
 
@@ -81,7 +87,6 @@ def midi_dl():
 @app.route('/sheet_dl', methods=["POST"])
 @login_required
 def sheet_dl():
-    print(request.form['filename'])
     song = converter.parse(request.form['filename'])
     for part in song.parts:
         part.removeByClass('Rest')
