@@ -85,8 +85,8 @@ def sheet_dl():
     song = converter.parse(request.form['filename'])
     for part in song.parts:
         part.removeByClass('Rest')
-    song.show('lily.pdf')
-    return redirect('/music')
+
+    return send_file(song.write('lily.pdf'), as_attachment=True)
 
 if __name__ == '__main__':
     app.run()
