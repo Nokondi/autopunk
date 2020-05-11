@@ -1,7 +1,8 @@
 {% extends "base.html" %}
 {% block content %}
+    <h1>{{ user }}'s Music</h1>
     <form action="/generate" method="post">
-        <button type="submit">Generate Music</button>
+        <button type="submit" class="btn" data-toggle="modal" data-target="#loadingModal">Generate Music</button>
     </form>
     <table>
         {% for song in songs %}
@@ -12,17 +13,30 @@
                 <td>
                     <form action="/midi_dl" method="post">
                         <input type="hidden" name="filename" id="filename" value="{{ song }}">
-                        <button type="submit">Download Midi</button>
+                        <button type="submit" class="btn">Download Midi</button>
                     </form>
                 </td>
                 <td>
                     <form action="/sheet_dl" method="post">
                         <input type="hidden" name="filename" id="filename" value="{{ song }}">
-                        <button type="submit">Download Sheet Music</button>
+                        <button type="submit" class="btn">Download Sheet Music</button>
                     </form>
                 </td>
             </tr>
         {% endfor %}
     </table>
+    <div class="modal fade" id="loadingModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-dialog" role="document">
+                <p>Please wait while our byte-size punk AI has a digital jam session.</p>
+                <img src="static/band.gif" style="width:80%;">
+            </div>
+        </div>
+    </div>
     <p><a href="/logout">Logout</a></p>
+    <script>
+        $('#myModal').on('shown.bs.modal', function () {
+            $('#myInput').trigger('focus')
+        })
+    </script>
 {% endblock %}

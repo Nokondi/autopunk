@@ -91,7 +91,7 @@ def get_songs(username):
         songs = []
         for s in query:
             songs.append(str(s.filename))
-        songs.reverse()
+        songs.sort()
         return songs
 
 def download_song(song):

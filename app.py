@@ -75,7 +75,7 @@ def music():
         t_pair = song.split('-')
         ts = t_pair[1].split('.')[0]
         time_string.append(datetime.utcfromtimestamp(int(ts)).strftime('%c'))
-    return render_template('music.html', songs=songs, times=time_string)
+    return render_template('music.html', songs=songs, times=time_string, user=current_user.username)
 
 @app.route('/midi_dl', methods=["POST"])
 @login_required
