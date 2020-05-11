@@ -86,7 +86,8 @@ def midi_dl():
 @app.route('/sheet_dl', methods=["POST"])
 @login_required
 def sheet_dl():
-    song = converter.parse(request.form['filename'])
+    download_song(request.form['filename'])
+    song = converter.parse('output/%s' % request.form['filename'])
     for part in song.parts:
         part.removeByClass('Rest')
 
