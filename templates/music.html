@@ -7,7 +7,7 @@
         {% for song in songs %}
             <tr>
                 <td>
-                    <p>Song {{ loop.index }}</p>
+                    <p>Song {{ loop.index }}<br> <em>Created {{ times[loop.index-1] }}</em></p>
                 </td>
                 <td>
                     <form action="/midi_dl" method="post">
